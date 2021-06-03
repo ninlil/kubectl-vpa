@@ -59,7 +59,7 @@ func compare(k8 *k8client, args *CmdArgs) {
 			if args.Debug {
 				fmt.Printf("adding vpa %s with %d containers\n", vpadata.Key(), len(vpadata.containers))
 			}
-		} else {
+			//} else {
 			//fmt.Printf("vpa %s/%s have no target\n", v.Namespace, v.Name)
 		}
 	}
@@ -110,6 +110,10 @@ func compare(k8 *k8client, args *CmdArgs) {
 	cw := columns.New(os.Stdout, "< < < < > > > > > > >")
 	cw.Headers("Namespace", "Name", "Mode", "Container", "Req-CPU", "VPA-CPU", "CPU diff%", "Req-RAM", "VPA-RAM", "Mem. diff%", "sum(Δ)")
 	cw.HeaderSeparator = true
+	cw.Footer(5, columns.Sum(0))
+	cw.Footer(6, columns.Sum(0))
+	cw.Footer(8, columns.Sum(0))
+	cw.Footer(9, columns.Sum(0))
 
 	diffStyle := columns.NewStyle().Suffix("%").ColorFunc(colorDiff)
 

@@ -1,4 +1,4 @@
-module github.com/Ninlil/kubectl-vpa/vpa_v1
+module github.com/ninlil/kubectl-vpa/vpa_v1
 
 go 1.15
 

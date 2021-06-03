@@ -24,5 +24,7 @@ func main() {
 		compare(k8, args)
 	case args.Mode != nil:
 		mode(k8, args)
+	case args.Suggest != nil:
+		suggest(k8, args)
 	}
 }

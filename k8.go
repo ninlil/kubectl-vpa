@@ -2,16 +2,22 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 
-	vpa "github.com/ninlil/vpa-compare/vpa_v1"
+	vpa "github.com/ninlil/kubectl-vpa/vpa_v1"
 	// v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+)
+
+const (
+	vpaCRD = "verticalpodautoscalers"
 )
 
 type k8client struct {
@@ -73,11 +79,17 @@ func (k8 *k8client) Pods(ns string) v1.PodInterface {
 
 func (k8 *k8client) VPAs(ns string) (*vpa.VerticalPodAutoscalerList, error) {
 	result := vpa.VerticalPodAutoscalerList{}
-	var req = k8.vpaClient.Get().Resource("verticalpodautoscalers")
+	var req = k8.vpaClient.Get().Resource(vpaCRD)
 	if ns != "" {
 		req = req.Namespace(ns)
 	}
 	err := req.Do(context.Background()).Into(&result)
+	return &result, err
+}
+
+func (k8 *k8client) VPA(ns, name string) (*vpa.VerticalPodAutoscaler, error) {
+	result := vpa.VerticalPodAutoscaler{}
+	err := k8.vpaClient.Get().Resource(vpaCRD).Namespace(ns).Name(name).Do(context.Background()).Into(&result)
 	return &result, err
 }
 
@@ -88,7 +100,10 @@ func (k8 *k8client) PatchString(ns, name, path, value string) error {
 		Value: value,
 	}}
 	payloadBytes, _ := json.Marshal(payload)
-	_, err := k8.vpaClient. ReplicationControllers("default").
-		Patch(replicasetName, types.JSONPatchType, payloadBytes)
-	return err
+	result := k8.vpaClient.Patch(types.JSONPatchType).Resource(vpaCRD).Namespace(ns).Name(name).Body(payloadBytes).Do(context.Background())
+	if err := result.Error(); err != nil {
+		return err
+	}
+
+	return nil
 }

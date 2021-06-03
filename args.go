@@ -19,16 +19,21 @@ type CompareArgs struct {
 }
 
 type ModeArgs struct {
-	Mode  string   `arg:"-m,--mode" help:"What mode to set the VPA in: Off, Initial or Auto" placeholder:"MODE"`
-	Names []string `arg:"positional" placeholder:"NAME"`
+	Mode  string   `arg:"positional" help:"What mode to set the VPA in: Off, Initial or Auto" placeholder:"MODE"`
+	Names []string `arg:"positional" help:"Name(s) of the VPA-resources to modify" placeholder:"NAME"`
+}
+
+type SuggestArgs struct {
+	Name string `arg:"positional" help:"Name of the VPA-resource to create suggestion" placeholder:"NAME"`
 }
 
 type CmdArgs struct {
 	Namespace     string       `arg:"-n,--namespace" help:"namespace to compare" default:"default"`
 	AllNamespaces bool         `arg:"-A,--all-namespaces" help:"If present, list the requested object(s) across all namespaces."`
 	Debug         bool         `arg:"-d,--debug" help:"enable debug output"`
-	Compare       *CompareArgs `arg:"subcommand:compare"`
-	Mode          *ModeArgs    `arg:"subcommand:mode"`
+	Compare       *CompareArgs `arg:"subcommand:compare" help:"Compare pod requests to VPA recommendations"`
+	Mode          *ModeArgs    `arg:"subcommand:mode" help:"Change mode on VPA-resource(s)"`
+	Suggest       *SuggestArgs `arg:"subcommand:suggest" help:"Suggest YAML from a VPA-resource"`
 }
 
 type compareFilter struct {
@@ -92,7 +97,12 @@ func (comp *CompareArgs) Verify(args *CmdArgs) error {
 
 func (mode *ModeArgs) Verify(args *CmdArgs) error {
 	switch strings.ToLower(mode.Mode) {
-	case "off", "initial", "auto":
+	case "off":
+		mode.Mode = "Off"
+	case "initial":
+		mode.Mode = "Initial"
+	case "auto":
+		mode.Mode = "Auto"
 	default:
 		return fmt.Errorf("unknown mode: '%s', allowed values: Off, Initial & Auto", mode)
 	}
@@ -100,4 +110,19 @@ func (mode *ModeArgs) Verify(args *CmdArgs) error {
 		return fmt.Errorf("no names specified")
 	}
 	return nil
+}
+
+func (args *CmdArgs) getParts(input string) (ns, name string) {
+	ns = args.Namespace
+	parts := strings.SplitN(input, "/", 2)
+	if len(parts) > 1 {
+		ns = parts[0]
+		name = parts[1]
+	} else {
+		name = input
+	}
+	if ns == "" {
+		ns = "default"
+	}
+	return ns, name
 }
