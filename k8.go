@@ -5,15 +5,21 @@ import (
 	"encoding/json"
 	"os"
 
-	vpa "github.com/ninlil/kubectl-vpa/vpa_v1"
 	// v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	batchv1beta1 "k8s.io/api/batch/v1beta1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	typev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	vpa "github.com/ninlil/kubectl-vpa/vpa_v1"
 )
 
 const (
@@ -66,8 +72,32 @@ func connect(args *CmdArgs) (*k8client, error) {
 	}, nil
 }
 
-func (k8 *k8client) Pods(ns string) v1.PodInterface {
+func (k8 *k8client) Pods(ns string) typev1.PodInterface {
 	return k8.k8Client.CoreV1().Pods(ns)
+}
+
+func (k8 *k8client) Pod(ns, name string) (*corev1.Pod, error) {
+	return k8.k8Client.CoreV1().Pods(ns).Get(context.Background(), name, metav1.GetOptions{})
+}
+
+func (k8 *k8client) DaemonSet(ns, name string) (*appsv1.DaemonSet, error) {
+	return k8.k8Client.AppsV1().DaemonSets(ns).Get(context.Background(), name, metav1.GetOptions{})
+}
+
+func (k8 *k8client) StatefulSet(ns, name string) (*appsv1.StatefulSet, error) {
+	return k8.k8Client.AppsV1().StatefulSets(ns).Get(context.Background(), name, metav1.GetOptions{})
+}
+
+func (k8 *k8client) Deployment(ns, name string) (*appsv1.Deployment, error) {
+	return k8.k8Client.AppsV1().Deployments(ns).Get(context.Background(), name, metav1.GetOptions{})
+}
+
+func (k8 *k8client) CronJob(ns, name string) (*batchv1.CronJob, error) {
+	return k8.k8Client.BatchV1().CronJobs(ns).Get(context.Background(), name, metav1.GetOptions{})
+}
+
+func (k8 *k8client) CronJobBeta(ns, name string) (*batchv1beta1.CronJob, error) {
+	return k8.k8Client.BatchV1beta1().CronJobs(ns).Get(context.Background(), name, metav1.GetOptions{})
 }
 
 func (k8 *k8client) VPAs(ns string) (*vpa.VerticalPodAutoscalerList, error) {

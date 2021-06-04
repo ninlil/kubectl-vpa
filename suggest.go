@@ -5,11 +5,6 @@ import (
 	"log"
 	"math"
 	"strconv"
-
-	"github.com/mickep76/encoding"
-	_ "github.com/mickep76/encoding/json"
-	_ "github.com/mickep76/encoding/toml"
-	_ "github.com/mickep76/encoding/yaml"
 )
 
 type suggestData struct {
@@ -25,7 +20,8 @@ type suggestValues struct {
 }
 
 type SuggestArgs struct {
-	Name string `arg:"positional,required" help:"Name of the VPA-resource to create suggestion" placeholder:"NAME"`
+	Name   string     `arg:"positional,required" help:"Name of the VPA-resource to create suggestion" placeholder:"NAME"`
+	Format FormatEnum `arg:"-o,--output-format" help:"Select output format (yaml [default], json, toml)"`
 }
 
 func (suggest *SuggestArgs) Verify() error {
@@ -49,7 +45,7 @@ func (suggest *SuggestArgs) Exec(k8 *k8client, args *CmdArgs) {
 		return
 	}
 
-	yaml, err := encoding.NewCodec("yaml", encoding.WithMapString())
+	yaml, err := suggest.Format.Encoder()
 	if err != nil {
 		log.Printf("yaml-encoder-error: %v", err)
 		return

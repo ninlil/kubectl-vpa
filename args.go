@@ -22,6 +22,7 @@ type CmdArgs struct {
 	Compare       *CompareArgs `arg:"subcommand:compare" help:"Compare pod requests to VPA recommendations"`
 	Mode          *ModeArgs    `arg:"subcommand:mode" help:"Change mode on VPA-resource(s)"`
 	Suggest       *SuggestArgs `arg:"subcommand:suggest" help:"Suggest YAML from a VPA-resource"`
+	Create        *CreateArgs  `arg:"subcommand:create" help:"Create a VPA-YAML from a pod"`
 }
 
 type compareFilter struct {
@@ -66,7 +67,7 @@ func (mode *ModeEnum) UnmarshalText(b []byte) error {
 }
 
 func (CmdArgs) Version() string {
-	return "vpa 0.4.0"
+	return "vpa 0.5.0"
 }
 
 func parseArgs() (Subcommand, *CmdArgs, bool) {
