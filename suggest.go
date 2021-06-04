@@ -24,11 +24,22 @@ type suggestValues struct {
 	Memory *string `json:"memory,omitempty"`
 }
 
-func suggest(k8 *k8client, args *CmdArgs) {
+type SuggestArgs struct {
+	Name string `arg:"positional,required" help:"Name of the VPA-resource to create suggestion" placeholder:"NAME"`
+}
+
+func (suggest *SuggestArgs) Verify() error {
+	if suggest.Name == "" {
+		return fmt.Errorf("Resource name must be specified")
+	}
+	return nil
+}
+
+func (suggest *SuggestArgs) Exec(k8 *k8client, args *CmdArgs) {
 	ns, name := args.getParts(args.Suggest.Name)
 	vpa, err := k8.VPA(ns, name)
 	if err != nil {
-		log.Printf("error: %v", err)
+		fmt.Printf("error: %v\n", err)
 		return
 	}
 
@@ -43,7 +54,6 @@ func suggest(k8 *k8client, args *CmdArgs) {
 		log.Printf("yaml-encoder-error: %v", err)
 		return
 	}
-	yaml.SetIndent("  ")
 
 	for _, c := range recommend.ContainerRecommendations {
 		fmt.Printf("\n# container %s\n", c.ContainerName)

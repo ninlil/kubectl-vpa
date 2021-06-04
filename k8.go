@@ -32,20 +32,13 @@ type patchStringValue struct {
 	Value string `json:"value"`
 }
 
-//  patchUint32Value specifies a patch operation for a uint32.
-type patchUInt32Value struct {
-	Op    string `json:"op"`
-	Path  string `json:"path"`
-	Value uint32 `json:"value"`
-}
-
 func connect(args *CmdArgs) (*k8client, error) {
 
 	_ = vpa.AddToScheme(scheme.Scheme)
 
 	// uses the current context in kubeconfig
 	// path-to-kubeconfig -- for example, /root/.kube/config
-	config, err := clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG"))
+	config, err := clientcmd.BuildConfigFromFlags(args.Kubeconfig, os.Getenv("KUBECONFIG"))
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +86,10 @@ func (k8 *k8client) VPA(ns, name string) (*vpa.VerticalPodAutoscaler, error) {
 	return &result, err
 }
 
-func (k8 *k8client) PatchString(ns, name, path, value string) error {
+// PatchVPA
+//
+// Adapted from example: https://gist.github.com/dwmkerr/447692c8bba28929ef914239781c4e59
+func (k8 *k8client) PatchVPA(ns, name, path, value string) error {
 	payload := []patchStringValue{{
 		Op:    "replace",
 		Path:  path,

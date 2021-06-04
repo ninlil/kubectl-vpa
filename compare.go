@@ -15,7 +15,34 @@ import (
 	"github.com/ninlil/columns"
 )
 
-func compare(k8 *k8client, args *CmdArgs) {
+type CompareArgs struct {
+	AllPods bool          `arg:"-l,--all-pods" help:"all pods, even those without a VPA"`
+	Modes   []ModeEnum    `arg:"-m,--mode,separate" help:"filter only VPAs with specified mode(s)" placeholder:"MODE"`
+	Head    int           `arg:"-h,--head" help:"only print N first lines" default:"-1"`
+	Tail    int           `arg:"-t,--tail" help:"only print N last lines" default:"-1"`
+	Sort    []int         `arg:"-s,--sort,separate" help:"sort by column N (negative sorts descending)"`
+	Sum     bool          `arg:"-z,--sum" help:"add sums to relevant value columns"`
+	filter  compareFilter `arg:"-"`
+}
+
+func (comp *CompareArgs) Verify() error {
+	for _, mode := range comp.Modes {
+		switch mode {
+		case modeOff:
+			comp.filter.filter = true
+			comp.filter.showOff = true
+		case modeInitial:
+			comp.filter.filter = true
+			comp.filter.showInitial = true
+		case modeAuto:
+			comp.filter.filter = true
+			comp.filter.showAuto = true
+		}
+	}
+	return nil
+}
+
+func (comp *CompareArgs) Exec(k8 *k8client, args *CmdArgs) {
 	pods, err := k8.Pods(args.Namespace).List(context.TODO(), v1.ListOptions{})
 	if err != nil {
 		panic(err)
@@ -110,10 +137,12 @@ func compare(k8 *k8client, args *CmdArgs) {
 	cw := columns.New(os.Stdout, "< < < < > > > > > > >")
 	cw.Headers("Namespace", "Name", "Mode", "Container", "Req-CPU", "VPA-CPU", "CPU diff%", "Req-RAM", "VPA-RAM", "Mem. diff%", "sum(Δ)")
 	cw.HeaderSeparator = true
-	cw.Footer(5, columns.Sum(0))
-	cw.Footer(6, columns.Sum(0))
-	cw.Footer(8, columns.Sum(0))
-	cw.Footer(9, columns.Sum(0))
+	if comp.Sum {
+		cw.Footer(5, columns.Sum(0))
+		cw.Footer(6, columns.Sum(0))
+		cw.Footer(8, columns.Sum(0))
+		cw.Footer(9, columns.Sum(0))
+	}
 
 	diffStyle := columns.NewStyle().Suffix("%").ColorFunc(colorDiff)
 

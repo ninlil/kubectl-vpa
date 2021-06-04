@@ -9,28 +9,16 @@ import (
 	arg "github.com/alexflint/go-arg"
 )
 
-type CompareArgs struct {
-	AllPods bool          `arg:"-0,--no-vpa" help:"all pods, even those without a VPA"`
-	Modes   []string      `arg:"-m,--mode,separate" help:"filter only VPAs with specified mode(s)" placeholder:"MODE"`
-	Head    int           `arg:"-h,--head" help:"only print N first lines" default:"-1"`
-	Tail    int           `arg:"-t,--tail" help:"only print N last lines" default:"-1"`
-	Sort    []int         `arg:"-s,--sort,separate" help:"sort by column N (negative sorts descending)"`
-	filter  compareFilter `arg:"-"`
-}
-
-type ModeArgs struct {
-	Mode  string   `arg:"positional" help:"What mode to set the VPA in: Off, Initial or Auto" placeholder:"MODE"`
-	Names []string `arg:"positional" help:"Name(s) of the VPA-resources to modify" placeholder:"NAME"`
-}
-
-type SuggestArgs struct {
-	Name string `arg:"positional" help:"Name of the VPA-resource to create suggestion" placeholder:"NAME"`
+type Subcommand interface {
+	Verify() error
+	Exec(*k8client, *CmdArgs)
 }
 
 type CmdArgs struct {
 	Namespace     string       `arg:"-n,--namespace" help:"namespace to compare" default:"default"`
 	AllNamespaces bool         `arg:"-A,--all-namespaces" help:"If present, list the requested object(s) across all namespaces."`
 	Debug         bool         `arg:"-d,--debug" help:"enable debug output"`
+	Kubeconfig    string       `arg:"-k" help:"filename of kubeconfig to use"`
 	Compare       *CompareArgs `arg:"subcommand:compare" help:"Compare pod requests to VPA recommendations"`
 	Mode          *ModeArgs    `arg:"subcommand:mode" help:"Change mode on VPA-resource(s)"`
 	Suggest       *SuggestArgs `arg:"subcommand:suggest" help:"Suggest YAML from a VPA-resource"`
@@ -43,11 +31,45 @@ type compareFilter struct {
 	showAuto    bool
 }
 
-func (CmdArgs) Version() string {
-	return "vpa 0.2.0"
+type ModeEnum int
+
+const (
+	modeOff ModeEnum = iota + 1
+	modeInitial
+	modeAuto
+)
+
+func (mode ModeEnum) String() string {
+	switch mode {
+	case modeInitial:
+		return "Initial"
+	case modeAuto:
+		return "Auto"
+	default:
+		return "Off"
+	}
 }
 
-func parseArgs() (*CmdArgs, bool) {
+func (mode *ModeEnum) UnmarshalText(b []byte) error {
+	s := strings.ToLower(string(b))
+	switch s {
+	case "off":
+		*mode = modeOff
+	case "initial":
+		*mode = modeInitial
+	case "auto":
+		*mode = modeAuto
+	default:
+		return fmt.Errorf("unknown mode: '%s', allowed values: Off, Initial & Auto", mode)
+	}
+	return nil
+}
+
+func (CmdArgs) Version() string {
+	return "vpa 0.4.0"
+}
+
+func parseArgs() (Subcommand, *CmdArgs, bool) {
 	var args CmdArgs
 	pa := arg.MustParse(&args)
 	if pa == nil {
@@ -63,53 +85,19 @@ func parseArgs() (*CmdArgs, bool) {
 		pa.Fail("Command not specified")
 	}
 
+	var cmd Subcommand
 	if ver, ok := pa.Subcommand().(Subcommand); ok {
-		if err := ver.Verify(&args); err != nil {
+		if err := ver.Verify(); err != nil {
 			pa.Fail(err.Error())
 		}
+		cmd = ver
 	}
 
-	return &args, true
-}
-
-type Subcommand interface {
-	Verify(*CmdArgs) error
-}
-
-func (comp *CompareArgs) Verify(args *CmdArgs) error {
-	for _, mode := range comp.Modes {
-		switch strings.ToLower(mode) {
-		case "off":
-			comp.filter.filter = true
-			comp.filter.showOff = true
-		case "initial":
-			comp.filter.filter = true
-			comp.filter.showInitial = true
-		case "auto":
-			comp.filter.filter = true
-			comp.filter.showAuto = true
-		default:
-			return fmt.Errorf("unknown mode: '%s', allowed values: Off, Initial & Auto", mode)
-		}
+	if cmd == nil {
+		pa.Fail("command not implemented")
 	}
-	return nil
-}
 
-func (mode *ModeArgs) Verify(args *CmdArgs) error {
-	switch strings.ToLower(mode.Mode) {
-	case "off":
-		mode.Mode = "Off"
-	case "initial":
-		mode.Mode = "Initial"
-	case "auto":
-		mode.Mode = "Auto"
-	default:
-		return fmt.Errorf("unknown mode: '%s', allowed values: Off, Initial & Auto", mode)
-	}
-	if len(mode.Names) == 0 {
-		return fmt.Errorf("no names specified")
-	}
-	return nil
+	return cmd, &args, true
 }
 
 func (args *CmdArgs) getParts(input string) (ns, name string) {
