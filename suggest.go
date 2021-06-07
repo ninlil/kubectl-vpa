@@ -21,7 +21,7 @@ type suggestValues struct {
 
 type suggestArgs struct {
 	Name   string     `arg:"positional,required" help:"Name of the VPA-resource to create suggestion" placeholder:"NAME"`
-	Format FormatEnum `arg:"-o,--output-format" help:"Select output format (yaml [default], json, toml)"`
+	Format formatEnum `arg:"-o,--output-format" help:"Select output format (yaml [default], json, toml)"`
 }
 
 func (suggest *suggestArgs) Verify() error {

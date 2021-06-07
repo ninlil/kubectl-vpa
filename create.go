@@ -14,7 +14,7 @@ import (
 type createArgs struct {
 	Names  []string   `arg:"positional,required" help:"Pod-name(s)to create VPA for" placeholder:"NAME"`
 	Mode   modeEnum   `arg:"-m,--mode" help:"Assign the VPA mode to the output"`
-	Format FormatEnum `arg:"-o,--output-format" help:"Select output format (yaml [default], json, toml)"`
+	Format formatEnum `arg:"-o,--output-format" help:"Select output format (yaml [default], json, toml)"`
 }
 
 func (cr *createArgs) Verify() error {

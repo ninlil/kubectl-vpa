@@ -10,15 +10,15 @@ import (
 	_ "github.com/mickep76/encoding/yaml"
 )
 
-type FormatEnum int
+type formatEnum int
 
 const (
-	formatYAML FormatEnum = iota
+	formatYAML formatEnum = iota
 	formatJSON
 	formatTOML
 )
 
-func (f *FormatEnum) UnmarshalText(b []byte) error {
+func (f *formatEnum) UnmarshalText(b []byte) error {
 	s := strings.ToLower(string(b))
 	switch s {
 	case "yaml":
@@ -33,7 +33,7 @@ func (f *FormatEnum) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (f FormatEnum) String() string {
+func (f formatEnum) String() string {
 	switch f {
 	// case formatYAML:
 	// 	return "yaml"
@@ -45,7 +45,7 @@ func (f FormatEnum) String() string {
 	return "yaml"
 }
 
-func (f FormatEnum) Encoder() (encoding.Codec, error) {
+func (f formatEnum) Encoder() (encoding.Codec, error) {
 	switch f {
 	case formatYAML:
 		return encoding.NewCodec(f.String(), encoding.WithMapString())
