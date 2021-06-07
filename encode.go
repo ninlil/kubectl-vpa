@@ -35,8 +35,8 @@ func (f *FormatEnum) UnmarshalText(b []byte) error {
 
 func (f FormatEnum) String() string {
 	switch f {
-	case formatYAML:
-		return "yaml"
+	// case formatYAML:
+	// 	return "yaml"
 	case formatJSON:
 		return "json"
 	case formatTOML:

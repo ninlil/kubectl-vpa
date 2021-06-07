@@ -9,20 +9,20 @@ import (
 	arg "github.com/alexflint/go-arg"
 )
 
-type Subcommand interface {
+type subcommand interface {
 	Verify() error
-	Exec(*k8client, *CmdArgs)
+	Exec(*k8client, *cmdArgs)
 }
 
-type CmdArgs struct {
+type cmdArgs struct {
 	Namespace     string       `arg:"-n,--namespace" help:"namespace to compare" default:"default"`
 	AllNamespaces bool         `arg:"-A,--all-namespaces" help:"If present, list the requested object(s) across all namespaces."`
 	Debug         bool         `arg:"-d,--debug" help:"enable debug output"`
 	Kubeconfig    string       `arg:"-k" help:"filename of kubeconfig to use"`
-	Compare       *CompareArgs `arg:"subcommand:compare" help:"Compare pod requests to VPA recommendations"`
-	Mode          *ModeArgs    `arg:"subcommand:mode" help:"Change mode on VPA-resource(s)"`
-	Suggest       *SuggestArgs `arg:"subcommand:suggest" help:"Suggest YAML from a VPA-resource"`
-	Create        *CreateArgs  `arg:"subcommand:create" help:"Create a VPA-YAML from a pod"`
+	Compare       *compareArgs `arg:"subcommand:compare" help:"Compare pod requests to VPA recommendations"`
+	Mode          *modeArgs    `arg:"subcommand:mode" help:"Change mode on VPA-resource(s)"`
+	Suggest       *suggestArgs `arg:"subcommand:suggest" help:"Suggest YAML from a VPA-resource"`
+	Create        *createArgs  `arg:"subcommand:create" help:"Create a VPA-YAML from a pod"`
 }
 
 type compareFilter struct {
@@ -32,15 +32,15 @@ type compareFilter struct {
 	showAuto    bool
 }
 
-type ModeEnum int
+type modeEnum int
 
 const (
-	modeOff ModeEnum = iota + 1
+	modeOff modeEnum = iota + 1
 	modeInitial
 	modeAuto
 )
 
-func (mode ModeEnum) String() string {
+func (mode modeEnum) String() string {
 	switch mode {
 	case modeInitial:
 		return "Initial"
@@ -51,7 +51,7 @@ func (mode ModeEnum) String() string {
 	}
 }
 
-func (mode *ModeEnum) UnmarshalText(b []byte) error {
+func (mode *modeEnum) UnmarshalText(b []byte) error {
 	s := strings.ToLower(string(b))
 	switch s {
 	case "off":
@@ -66,12 +66,12 @@ func (mode *ModeEnum) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (CmdArgs) Version() string {
+func (cmdArgs) Version() string {
 	return "vpa 0.5.0"
 }
 
-func parseArgs() (Subcommand, *CmdArgs, bool) {
-	var args CmdArgs
+func parseArgs() (subcommand, *cmdArgs, bool) {
+	var args cmdArgs
 	pa := arg.MustParse(&args)
 	if pa == nil {
 		log.Println("unable to parse arguments")
@@ -86,8 +86,8 @@ func parseArgs() (Subcommand, *CmdArgs, bool) {
 		pa.Fail("Command not specified")
 	}
 
-	var cmd Subcommand
-	if ver, ok := pa.Subcommand().(Subcommand); ok {
+	var cmd subcommand
+	if ver, ok := pa.Subcommand().(subcommand); ok {
 		if err := ver.Verify(); err != nil {
 			pa.Fail(err.Error())
 		}
@@ -101,7 +101,7 @@ func parseArgs() (Subcommand, *CmdArgs, bool) {
 	return cmd, &args, true
 }
 
-func (args *CmdArgs) getParts(input string) (ns, name string) {
+func (args *cmdArgs) getParts(input string) (ns, name string) {
 	ns = args.Namespace
 	parts := strings.SplitN(input, "/", 2)
 	if len(parts) > 1 {

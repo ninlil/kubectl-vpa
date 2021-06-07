@@ -15,9 +15,9 @@ import (
 	"github.com/ninlil/columns"
 )
 
-type CompareArgs struct {
+type compareArgs struct {
 	AllPods bool          `arg:"-l,--all-pods" help:"all pods, even those without a VPA"`
-	Modes   []ModeEnum    `arg:"-m,--mode,separate" help:"filter only VPAs with specified mode(s)" placeholder:"MODE"`
+	Modes   []modeEnum    `arg:"-m,--mode,separate" help:"filter only VPAs with specified mode(s)" placeholder:"MODE"`
 	Head    int           `arg:"-h,--head" help:"only print N first lines" default:"-1"`
 	Tail    int           `arg:"-t,--tail" help:"only print N last lines" default:"-1"`
 	Sort    []int         `arg:"-s,--sort,separate" help:"sort by column N (negative sorts descending)"`
@@ -25,7 +25,7 @@ type CompareArgs struct {
 	filter  compareFilter `arg:"-"`
 }
 
-func (comp *CompareArgs) Verify() error {
+func (comp *compareArgs) Verify() error {
 	for _, mode := range comp.Modes {
 		switch mode {
 		case modeOff:
@@ -42,7 +42,7 @@ func (comp *CompareArgs) Verify() error {
 	return nil
 }
 
-func (comp *CompareArgs) Exec(k8 *k8client, args *CmdArgs) {
+func (comp *compareArgs) Exec(k8 *k8client, args *cmdArgs) {
 	pods, err := k8.Pods(args.Namespace).List(context.TODO(), v1.ListOptions{})
 	if err != nil {
 		panic(err)

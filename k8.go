@@ -23,7 +23,16 @@ import (
 )
 
 const (
-	vpaCRD = "verticalpodautoscalers"
+	vpaCRD          = "verticalpodautoscalers"
+	kindVPA         = "VerticalPodAutoscaler"
+	kindReplicaSet  = "ReplicaSet"
+	kindDeployment  = "Deployment"
+	kindJob         = "Job"
+	kindCronJob     = "CronJob"
+	kindCronJobBeta = "CronJobBeta"
+	kindPod         = "Pod"
+	kindStatefulSet = "StatefulSet"
+	kindDaemonSet   = "DaemonSet"
 )
 
 type k8client struct {
@@ -38,7 +47,7 @@ type patchStringValue struct {
 	Value string `json:"value"`
 }
 
-func connect(args *CmdArgs) (*k8client, error) {
+func connect(args *cmdArgs) (*k8client, error) {
 
 	_ = vpa.AddToScheme(scheme.Scheme)
 

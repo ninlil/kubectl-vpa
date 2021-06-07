@@ -11,20 +11,20 @@ import (
 	_ "github.com/mickep76/encoding/yaml"
 )
 
-type CreateArgs struct {
+type createArgs struct {
 	Names  []string   `arg:"positional,required" help:"Pod-name(s)to create VPA for" placeholder:"NAME"`
-	Mode   ModeEnum   `arg:"-m,--mode" help:"Assign the VPA mode to the output"`
+	Mode   modeEnum   `arg:"-m,--mode" help:"Assign the VPA mode to the output"`
 	Format FormatEnum `arg:"-o,--output-format" help:"Select output format (yaml [default], json, toml)"`
 }
 
-func (cr *CreateArgs) Verify() error {
+func (cr *createArgs) Verify() error {
 	if len(cr.Names) == 0 {
 		return fmt.Errorf("no names specified")
 	}
 	return nil
 }
 
-func (cr *CreateArgs) Exec(k8 *k8client, args *CmdArgs) {
+func (cr *createArgs) Exec(k8 *k8client, args *cmdArgs) {
 
 	if args.Debug {
 		fmt.Printf("## format as %s\n", cr.Format.String())
@@ -88,7 +88,7 @@ type vpaUpdatePolicy struct {
 	UpdateMode string `yaml:"updateMode"`
 }
 
-func (cr *CreateArgs) createForDaemonSet(k8 *k8client, ns, name string, enc encoding.Codec, args *CmdArgs) bool {
+func (cr *createArgs) createForDaemonSet(k8 *k8client, ns, name string, enc encoding.Codec, args *cmdArgs) bool {
 
 	ds, err := k8.DaemonSet(ns, name)
 	if err != nil {
@@ -104,7 +104,7 @@ func (cr *CreateArgs) createForDaemonSet(k8 *k8client, ns, name string, enc enco
 	return true
 }
 
-func (cr *CreateArgs) createForStatefulSet(k8 *k8client, ns, name string, enc encoding.Codec, args *CmdArgs) bool {
+func (cr *createArgs) createForStatefulSet(k8 *k8client, ns, name string, enc encoding.Codec, args *cmdArgs) bool {
 
 	ss, err := k8.StatefulSet(ns, name)
 	if err != nil {
@@ -120,7 +120,7 @@ func (cr *CreateArgs) createForStatefulSet(k8 *k8client, ns, name string, enc en
 	return true
 }
 
-func (cr *CreateArgs) createForDeployment(k8 *k8client, ns, name string, enc encoding.Codec, args *CmdArgs) bool {
+func (cr *createArgs) createForDeployment(k8 *k8client, ns, name string, enc encoding.Codec, args *cmdArgs) bool {
 
 	dep, err := k8.Deployment(ns, name)
 	if err != nil {
@@ -136,7 +136,7 @@ func (cr *CreateArgs) createForDeployment(k8 *k8client, ns, name string, enc enc
 	return true
 }
 
-func (cr *CreateArgs) createForCronJob(k8 *k8client, ns, name string, enc encoding.Codec, args *CmdArgs) bool {
+func (cr *createArgs) createForCronJob(k8 *k8client, ns, name string, enc encoding.Codec, args *cmdArgs) bool {
 
 	job, err := k8.CronJob(ns, name)
 	if err != nil {
@@ -152,7 +152,7 @@ func (cr *CreateArgs) createForCronJob(k8 *k8client, ns, name string, enc encodi
 	return true
 }
 
-func (cr *CreateArgs) createForCronJobBeta(k8 *k8client, ns, name string, enc encoding.Codec, args *CmdArgs) bool {
+func (cr *createArgs) createForCronJobBeta(k8 *k8client, ns, name string, enc encoding.Codec, args *cmdArgs) bool {
 
 	job, err := k8.CronJobBeta(ns, name)
 	if err != nil {
@@ -168,7 +168,7 @@ func (cr *CreateArgs) createForCronJobBeta(k8 *k8client, ns, name string, enc en
 	return true
 }
 
-func (cr *CreateArgs) createForPod(k8 *k8client, ns, name string, enc encoding.Codec, args *CmdArgs) bool {
+func (cr *createArgs) createForPod(k8 *k8client, ns, name string, enc encoding.Codec, args *cmdArgs) bool {
 
 	pod, err := k8.Pod(ns, name)
 	if err != nil {
@@ -179,7 +179,7 @@ func (cr *CreateArgs) createForPod(k8 *k8client, ns, name string, enc encoding.C
 		fmt.Printf("\n# create vpa-yaml for pod %s/%s\n", pod.Name, pod.Namespace)
 	}
 
-	kind := "Pod"
+	kind := kindPod
 	ns = pod.Namespace
 	name = pod.Name
 
@@ -192,10 +192,10 @@ func (cr *CreateArgs) createForPod(k8 *k8client, ns, name string, enc encoding.C
 	}
 
 	switch kind {
-	case "ReplicaSet":
-		kind = "Deployment"
-	case "Job":
-		kind = "CronJob"
+	case kindReplicaSet:
+		kind = kindDeployment
+	case kindJob:
+		kind = kindCronJob
 	}
 
 	var cnames = make([]string, 0, len(pod.Spec.Containers))
@@ -207,22 +207,22 @@ func (cr *CreateArgs) createForPod(k8 *k8client, ns, name string, enc encoding.C
 	return true
 }
 
-func (cr *CreateArgs) createVPA(enc encoding.Codec, kind, ns, name string, containers []string, args *CmdArgs) {
+func (cr *createArgs) createVPA(enc encoding.Codec, kind, ns, name string, containers []string, args *cmdArgs) {
 	var version string
 
 	switch kind {
-	case "ReplicaSet", "Deployment":
-		kind = "Deployment"
+	case kindReplicaSet, kindDeployment:
+		kind = kindDeployment
 		version = "apps/v1"
-	case "Job":
-		kind = "CronJob"
+	case kindJob:
+		kind = kindCronJob
 		version = "batch/v1beta1"
-	case "StatefulSet", "DaemonSet":
+	case kindStatefulSet, kindDaemonSet:
 		version = "apps/v1"
-	case "CronJob":
+	case kindCronJob:
 		version = "batch/v1"
-	case "CronJobBeta":
-		kind = "CronJob"
+	case kindCronJobBeta:
+		kind = kindCronJob
 		version = "batch/v1beta1"
 	default:
 		log.Printf("Unsupported kind: %s", kind)
@@ -240,7 +240,7 @@ func (cr *CreateArgs) createVPA(enc encoding.Codec, kind, ns, name string, conta
 
 	var vpa = vpaRoot{
 		APIVersion: "autoscaling.k8s.io/v1",
-		Kind:       "VerticalPodAutoscaler",
+		Kind:       kindVPA,
 		Meta: vpaMeta{
 			Name:      name,
 			Namespace: ns,

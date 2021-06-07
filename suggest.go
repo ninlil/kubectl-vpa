@@ -19,19 +19,19 @@ type suggestValues struct {
 	Memory *string `json:"memory,omitempty"`
 }
 
-type SuggestArgs struct {
+type suggestArgs struct {
 	Name   string     `arg:"positional,required" help:"Name of the VPA-resource to create suggestion" placeholder:"NAME"`
 	Format FormatEnum `arg:"-o,--output-format" help:"Select output format (yaml [default], json, toml)"`
 }
 
-func (suggest *SuggestArgs) Verify() error {
+func (suggest *suggestArgs) Verify() error {
 	if suggest.Name == "" {
 		return fmt.Errorf("Resource name must be specified")
 	}
 	return nil
 }
 
-func (suggest *SuggestArgs) Exec(k8 *k8client, args *CmdArgs) {
+func (suggest *suggestArgs) Exec(k8 *k8client, args *cmdArgs) {
 	ns, name := args.getParts(args.Suggest.Name)
 	vpa, err := k8.VPA(ns, name)
 	if err != nil {
