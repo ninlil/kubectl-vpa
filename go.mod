@@ -10,7 +10,6 @@ require (
 	github.com/mickep76/encoding v0.0.0-20191112132937-4a810d6b3199
 	github.com/ninlil/ansi v1.1.0
 	github.com/ninlil/columns v1.0.0
-	github.com/ninlil/kubectl-vpa/vpa_v1 v0.0.0
 	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c // indirect
 	golang.org/x/sys v0.0.0-20210603125802-9665404d3644 // indirect
 	golang.org/x/term v0.0.0-20210503060354-a79de5458b56 // indirect
@@ -21,7 +20,5 @@ require (
 	k8s.io/client-go v0.21.1
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
 )
-
-replace github.com/ninlil/kubectl-vpa/vpa_v1 => ./vpa_v1
 
 replace github.com/ninlil/columns => ../columns

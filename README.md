@@ -30,6 +30,12 @@ or using the kubectl-plugin-behavior
 kubectl vpa ...
 ```
 
+### Quick-start
+This will create a VPA-resource for all runnings pods that dont yet have one (with UpdateMode = Off)
+```sh
+kubectl-vpa compare -A -! -b | kubectl-vpa create -f - | kubectl apply -f -
+```
+
 ### Help and options
 All command have their own help. Example:
 ```sh
