@@ -20,7 +20,7 @@ type compareArgs struct {
 	Modes        []modeEnum    `arg:"-m,--mode,separate" help:"filter only VPAs with specified mode(s)" placeholder:"MODE"`
 	InvertFilter bool          `arg:"-!,--invert" help:"invert the mode-filter"`
 	Brief        bool          `arg:"-b,--brief" help:"Show in brief format (namespace/vpa_name)"`
-	Head         int           `arg:"-h,--head" help:"only print N first lines" default:"-1"`
+	Head         int           `arg:"-H,--head" help:"only print N first lines" default:"-1"`
 	Tail         int           `arg:"-t,--tail" help:"only print N last lines" default:"-1"`
 	Sort         []int         `arg:"-s,--sort,separate" help:"sort by column N (negative sorts descending)"`
 	Sum          bool          `arg:"-z,--sum" help:"add sums to relevant value columns"`
