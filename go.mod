@@ -21,4 +21,4 @@ require (
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
 )
 
-replace github.com/ninlil/columns => ../columns
+#replace github.com/ninlil/columns => ../columns
