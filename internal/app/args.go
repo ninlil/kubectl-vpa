@@ -64,7 +64,7 @@ func (mode *modeEnum) UnmarshalText(b []byte) error {
 }
 
 func (cmdArgs) Version() string {
-	return "vpa 0.7.2"
+	return fmt.Sprintf("vpa %s", versionFunc())
 }
 
 func ParseArgs() (subcommand, *cmdArgs, bool) {
