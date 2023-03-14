@@ -24,9 +24,13 @@ type suggestArgs struct {
 	Format formatEnum `arg:"-o,--output-format" help:"Select output format (yaml [default], json, toml)"`
 }
 
+var (
+	errNameMissing = fmt.Errorf("resource name must be specified")
+)
+
 func (suggest *suggestArgs) Verify() error {
 	if suggest.Name == "" {
-		return fmt.Errorf("Resource name must be specified")
+		return errNameMissing
 	}
 	return nil
 }

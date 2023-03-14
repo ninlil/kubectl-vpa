@@ -67,6 +67,7 @@ func (cmdArgs) Version() string {
 	return fmt.Sprintf("vpa %s", versionFunc())
 }
 
+// ParseArgs reads and validate supplied arguments
 func ParseArgs() (subcommand, *cmdArgs, bool) {
 	var args cmdArgs
 	pa := arg.MustParse(&args)

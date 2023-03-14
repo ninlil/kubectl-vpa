@@ -1,6 +1,7 @@
 package app
 
 import (
+	// need this to work
 	_ "embed"
 )
 
