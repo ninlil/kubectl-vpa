@@ -51,7 +51,7 @@ func (cr *createArgs) Exec(k8 *k8client, args *cmdArgs) {
 		case cr.createForStatefulSet(k8, ns, name, yaml, args):
 		case cr.createForDeployment(k8, ns, name, yaml, args):
 		case cr.createForCronJob(k8, ns, name, yaml, args):
-		case cr.createForCronJobBeta(k8, ns, name, yaml, args):
+		//case cr.createForCronJobBeta(k8, ns, name, yaml, args):
 		default:
 			fmt.Fprintf(os.Stderr, "error: unable to locate resource %s/%s\n", ns, name)
 		}
@@ -252,7 +252,7 @@ func (cr *createArgs) createVPA(enc encoding.Codec, kind, ns, name string, conta
 		version = "apps/v1"
 	case kindJob:
 		kind = kindCronJob
-		version = "batch/v1beta1"
+		version = "batch/v1"
 	case kindStatefulSet, kindDaemonSet:
 		version = "apps/v1"
 	case kindCronJob:
