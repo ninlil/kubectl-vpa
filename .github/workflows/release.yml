@@ -20,15 +20,19 @@ jobs:
           - goarch: arm64
             goos: windows
     steps:
-    - uses: actions/checkout@v2
-    - run: bash ./get_version.sh
-    - uses: wangyoucao577/go-release-action@v1.25
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: ${{ matrix.goos }}
-        goarch: ${{ matrix.goarch }}
-#        goversion: "https://dl.google.com/go/go1.13.1.linux-amd64.tar.gz"
-#        project_path: "./cmd/test-binary"
-        binary_name: kubectl-vpa
-#        extra_files: LICENSE README.md
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set version
+        run: bash ./get_version.sh
+
+      - name: Build assets
+        uses: wangyoucao577/go-release-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          binary_name: kubectl-vpa
+          md5sum: FALSE
+          sha256sum: TRUE
         
