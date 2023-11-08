@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/mickep76/encoding"
+
+	// need these encodings
 	_ "github.com/mickep76/encoding/json"
 	_ "github.com/mickep76/encoding/toml"
 	_ "github.com/mickep76/encoding/yaml"

@@ -64,9 +64,10 @@ func (mode *modeEnum) UnmarshalText(b []byte) error {
 }
 
 func (cmdArgs) Version() string {
-	return "vpa 0.7.2"
+	return fmt.Sprintf("vpa %s", versionFunc())
 }
 
+// ParseArgs reads and validate supplied arguments
 func ParseArgs() (subcommand, *cmdArgs, bool) {
 	var args cmdArgs
 	pa := arg.MustParse(&args)

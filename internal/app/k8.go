@@ -40,13 +40,14 @@ type k8client struct {
 	vpaClient *rest.RESTClient
 }
 
-//  patchStringValue specifies a patch operation for a string.
+// patchStringValue specifies a patch operation for a string.
 type patchStringValue struct {
 	Op    string `json:"op"`
 	Path  string `json:"path"`
 	Value string `json:"value"`
 }
 
+// Connect to k8s
 func Connect(args *cmdArgs) (*k8client, error) {
 
 	_ = vpa.AddToScheme(scheme.Scheme)
